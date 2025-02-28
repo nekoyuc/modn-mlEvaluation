@@ -18,7 +18,7 @@ model = genai.GenerativeModel(
     #system_instruction=system_instructions,
 )
 
-num_prompts = 50
+num_prompts = 100
 
 print("Select an option:")
 print("1. Start chat session")
