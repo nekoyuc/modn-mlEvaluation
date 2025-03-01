@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Image Preference Evaluation</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        .pair { display: flex; justify-content: center; margin-top: 20px; }
+        .pair img { max-width: 45%; margin: 0 10px; border: 1px solid #ccc; }
+        h2 { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Pair {{ current_index + 1 }} of {{ total }}</h2>
+    <div class="pair">
+        <img src="{{ url_for('serve_image', filename=pair.img0) }}" alt="Image 0">
+        <img src="{{ url_for('serve_image', filename=pair.img1) }}" alt="Image 1">
+    </div>
+    <p>Press the <strong>"a"</strong> key to vote for the <strong>left</strong> image or the <strong>";"</strong> key to vote for the <strong>right</strong> image.</p>
+    <script>
+        // Listen for key presses
+        document.addEventListener('keydown', function(event) {
+            // Check for "a" (or "A") and ";" keys
+            if (event.key === 'a' || event.key === 'A' || event.key === ';') {
+                // Determine vote: 0 for left ("a"), 1 for right (";")
+                var vote = (event.key === 'a' || event.key === 'A') ? 0 : 1;
+                // Send the vote to the server via a POST request
+                fetch('/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ vote: vote })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // After vote, simply reload the page.
+                    // The server will either render the next pair or the finished page.
+                    window.location.href = '/';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

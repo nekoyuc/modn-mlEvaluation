@@ -896,3 +896,96 @@ Customer: Ok I get it, bye.
 
 
 
+--------------------
+MODN Test Conversation
+Time: 2025-02-28 13:50:48 
+
+
+MODN: Hello! Welcome to MODN. How can I help you today?
+
+
+
+Customer: I'm looking for a cool phone stand.
+
+
+
+MODN: Hi there! A phone stand, great choice! We can make a fantastic phone stand for you. We can explore styles like minimalist, Japandi, or even something with a touch of nature, like a small tree branch design. What kind of style are you envisioning? <prompt> a phone holder </prompt>
+
+
+
+Customer: A simple, wooden phone holder.
+
+
+
+MODN: Okay, simple and wooden! Do you prefer lighter or darker wood tones? And any particular shape in mind – maybe something geometric or more organic? <prompt> a wooden phone holder </prompt>
+
+
+
+Customer: Um... triangular?
+
+
+
+MODN: Triangular it is! Excellent. Do you want the triangle to stand on one of its points, or on a flat side? And what kind of wood are you imagining? <prompt> a triangular wooden phone holder </prompt>
+
+
+
+Customer: Point, and maple wood.
+
+
+
+MODN: Great! A maple wood, triangular phone holder standing on its point. Do you want the edges of the triangle sharp or rounded? <prompt> a maple wood triangular phone holder </prompt>
+
+
+
+Customer: Rounded.
+
+
+
+MODN: Got it! A maple wood, triangular phone holder, standing on its point, with rounded edges. Anything else? <prompt> a maple wood triangular phone holder with rounded edges </prompt>
+
+
+
+Customer: No, that's it.
+
+
+
+MODN: Perfect! Please proceed to the next page for shipping, timeline, and additional design service information. <prompt> a maple wood triangular phone holder with rounded edges </prompt>
+
+
+
+Customer: Okay.
+
+
+
+MODN: <prompt> a maple wood triangular phone holder with rounded edges </prompt>
+
+
+
+Customer: Thank you.
+
+
+
+MODN: You're welcome! We're excited to create this for you. <prompt> a maple wood triangular phone holder with rounded edges </prompt>
+
+
+
+Customer: Bye!
+
+
+
+MODN: Goodbye! <prompt> a maple wood triangular phone holder with rounded edges </prompt>
+
+
+
+Customer: ...
+
+
+
+MODN: <prompt> a maple wood triangular phone holder with rounded edges </prompt>
+
+
+
+Customer: Done.
+
+
+

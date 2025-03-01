@@ -12,3 +12,6 @@ def copy_prompts_to_drive():
 
 def copy(src_path, dest_path):
     os.system("scp {} {}".format(src_path, dest_path))
+
+def copy_folder(src_path, dest_path):
+    os.system("scp -r {} {}".format(src_path, dest_path))
