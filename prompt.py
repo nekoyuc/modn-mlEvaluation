@@ -18,7 +18,7 @@ model = genai.GenerativeModel(
     #system_instruction=system_instructions,
 )
 
-num_prompts = 100
+num_prompts = 5
 
 print("Select an option:")
 print("1. Start chat session")
@@ -60,7 +60,7 @@ if user_choice == "1":
         print("\nAI: " + response.text)
         
 elif user_choice == "2":
-    request = f"Imagine a customer comes in with {num_prompts} random orders, make a list of summarization of these orders. In your response, put each order in double quotes and separate them with a comma, put each order on a new line. No need to say anything else besides the list of orders."
+    request = f"Imagine a customer comes in with {num_prompts} orders for different trinkets, make a list of summarization of these orders. In your response, put each order in double quotes and separate them with a comma, put each order on a new line. No need to say anything else besides the list of orders."
     response = chat_session.send_message(request)
     with open("prompts.txt", "w") as file:
         file.write(response.text)
