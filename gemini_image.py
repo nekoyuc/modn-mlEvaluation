@@ -7,14 +7,16 @@ import time
 import re
 
 config_written = False
+current_project = 3
 
 def save_binary_file(file_name, data):
     f = open(file_name, "wb")
     f.write(data)
     f.close()
 
-def generate(iter, temp, prompt):
+def generate(iter, temp, topp, topk, prompt):
     global config_written
+    global current_project
     file1 = ""
     file2 = ""
     file3 = ""
@@ -28,7 +30,7 @@ def generate(iter, temp, prompt):
         selected_files = random.sample(img_files, 1)
         file1 = selected_files[0]
 
-    new_folder = f'gemini_images/gemini_img/batch{iter}/'
+    new_folder = f'gemini_images_pj{current_project}/gemini_img/batch{iter}/'
     os.makedirs(new_folder, exist_ok=True)
     n = 1
     for file in selected_files:
@@ -50,7 +52,7 @@ def generate(iter, temp, prompt):
         #client.files.upload(file=file3),
     ]
     model = "gemini-2.0-flash-exp-image-generation"
-    user_text = prompt + ". Leave the object empty, show the full extent of the whole object, do not include any other objects. Keep the background, mono-colored, plain and simple. Reference and imitate style of the uploaded image. If the image style is inconsistent with the request, just try your best and go do it."
+    user_text = prompt + ". Generate an image based on the description above, describe your thinking process in text before generating the image, make sure to include both your thinking process and the image in your response. For the image, Leave the object empty, show the full extent of the whole object, do not include any other objects. Keep the background, mono-colored, plain and simple. Reference and imitate style of the uploaded image. If the image style is inconsistent with the request, just try your best and go do it."
     contents = [
         types.Content(
             role="user",
@@ -76,8 +78,8 @@ def generate(iter, temp, prompt):
     ]
     generate_content_config = types.GenerateContentConfig(
         temperature=temp,
-        top_p=0.55,
-        top_k=1000,
+        top_p=topp,
+        top_k=topk,
         max_output_tokens=8192,
         response_modalities=[
             "image",
@@ -88,7 +90,7 @@ def generate(iter, temp, prompt):
 
     if config_written == False:
         config_written = True
-        config_file_path = "gemini_images/gemini_img/config.txt"
+        config_file_path = f'gemini_images_pj{current_project}/gemini_img/config.txt'
         with open(config_file_path, "a") as config_file:
             config_file.write(f"Temperature: {generate_content_config.temperature}\n")
             config_file.write(f"Top P: {generate_content_config.top_p}\n")
@@ -116,34 +118,46 @@ def generate(iter, temp, prompt):
                 f"to: {file_name}"
             )
         else:
-            print(chunk.text)
+            with open(new_folder + "reasoning.txt", "a") as f:
+                f.write(chunk.text)
     time.sleep(5)
+
+
+def get_next_batch_number(base_dir):
+    max_number = 0
+    for dir_name in os.listdir(base_dir):
+        if dir_name.startswith("gemini_img"):
+            try:
+                number = int(dir_name.replace("gemini_img", ""))
+                if number > max_number:
+                    max_number = number
+            except ValueError:
+                continue
+    return max_number + 1
+
 
 if __name__ == "__main__":
     prompt = input("Type your image description here:\n").strip()
     for t in range(3):
-        repetition = 0
-        while repetition < 2:
-            config_written = False
-            for i in range(10):
-                generate(i, t, prompt)
+        temp = t
+        for p in range(3):
+            topp = 0.95 - 0.2 * p 
+            for k in range(3):
+                topk = 40 + 100 * k
 
-            base_dir = "/Users/nekoyuc/src/modn-mlEvaluation/gemini_images/"
-            def get_next_batch_number(base_dir):
-                max_number = 0
-                for dir_name in os.listdir(base_dir):
-                    if dir_name.startswith("gemini_img"):
-                        try:
-                            number = int(dir_name.replace("gemini_img", ""))
-                            if number > max_number:
-                                max_number = number
-                        except ValueError:
-                            continue
-                return max_number + 1
+                repetition = 0
+                while repetition < 1:
+                    config_written = False
+                    for iteration in range(5):
+                        generate(iteration, temp, topp, topk, prompt)
 
-            next_batch_number = get_next_batch_number(base_dir)
-            print(f"Next batch number: {next_batch_number}")
-            os.rename(os.path.join(base_dir, "gemini_img"), os.path.join(base_dir, f"gemini_img{next_batch_number}"))
+                    base_dir = f'/Users/nekoyuc/src/modn-mlEvaluation/gemini_images_pj{current_project}/'
+                    
+                    next_batch_number = get_next_batch_number(base_dir)
+                    print(f"Next batch number: {next_batch_number}")
+                    os.rename(os.path.join(base_dir, "gemini_img"), os.path.join(base_dir, f"gemini_img{next_batch_number}"))
 
-            repetition += 1
+                    repetition += 1
+                k += 1
+            p += 1
         t += 1

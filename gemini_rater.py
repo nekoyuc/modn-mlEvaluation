@@ -81,7 +81,7 @@ class ImageReviewer:
         self.image_index_label = ttk.Label(index_frame, text="Image Index: N/A")
         self.image_index_label.pack(side=tk.LEFT, padx=5)
 
-        self.config_text = tk.Text(right_frame, height=12, width=100, wrap=tk.WORD)
+        self.config_text = tk.Text(right_frame, height=20, width=120, wrap=tk.WORD)
         self.config_text.pack(pady=5)
         self.config_text.insert(tk.END, "Config will be displayed here.")
         self.config_text.config(state=tk.DISABLED)
@@ -113,15 +113,18 @@ class ImageReviewer:
 
             self.create_rating_buttons(criterion)
 
-        self.save_button = ttk.Button(right_frame, text="Save Rating", command=self.save_rating)
-        self.save_button.pack(pady=5)
+        button_row_frame = ttk.Frame(right_frame)
+        button_row_frame.pack(pady=5)
+
+        self.save_button = ttk.Button(button_row_frame, text="Save Rating", command=self.save_rating)
+        self.save_button.pack(side=tk.LEFT, padx=5)
         #self.save_button.config(state=tk.DISABLED)
 
-        self.summary_button = ttk.Button(right_frame, text="Show Summary", command=self.show_summary)
-        self.summary_button.pack(pady=5)
+        self.summary_button = ttk.Button(button_row_frame, text="Show Summary", command=self.show_summary)
+        self.summary_button.pack(side=tk.LEFT, padx=5)
 
-        self.save_csv_button = ttk.Button(right_frame, text="Save to CSV", command=self.save_to_csv)
-        self.save_csv_button.pack(pady=5)
+        self.save_csv_button = ttk.Button(button_row_frame, text="Save to CSV", command=self.save_to_csv)
+        self.save_csv_button.pack(side=tk.LEFT, padx=5)
 
     def create_rating_buttons(self, criterion):
         for widget in self.rating_button_frames[criterion].winfo_children():
@@ -289,6 +292,7 @@ class ImageReviewer:
         self.setup_spreadsheet()  # Refresh the spreadsheet to include new data
         self.display_current_images()
 
+
     def load_config(self, config_path: str) -> Dict:
         config = {}
         try:
@@ -311,6 +315,7 @@ class ImageReviewer:
         except Exception as e:
             messagebox.showerror("Error", f"Error loading config file: {e}")
             return {}
+
         return config
 
     def display_current_images(self):
@@ -326,7 +331,7 @@ class ImageReviewer:
         self.load_and_display_image(generated_image_path, self.generated_image_label)
 
         reference_image_files = [f for f in os.listdir(current_subfolder_path)
-                                  if os.path.isfile(os.path.join(current_subfolder_path, f)) and f != "gemini_image.png"]
+                      if os.path.isfile(os.path.join(current_subfolder_path, f)) and f != "gemini_image.png" and f.endswith(".png")]
 
         if reference_image_files:
              reference_image_path = os.path.join(current_subfolder_path, reference_image_files[0])
@@ -336,6 +341,17 @@ class ImageReviewer:
             self.reference_image_label.config(image="")
 
         config = self.config_data.get(current_batch_path, {})
+
+        # Load reasoning.txt if available
+        try:
+            with open(os.path.join(current_subfolder_path, "reasoning.txt"), "r") as f:
+                reasoning = f.read()
+                config["Reasoning"] = reasoning
+        except FileNotFoundError:
+            config["Reasoning"] = "NA"
+        except Exception as e:
+            config["Reasoning"] = "NA"
+
         self.display_config(config)
 
         self.batch_index_label.config(text=f"Batch Index: {self.current_batch_index}")
@@ -375,7 +391,7 @@ class ImageReviewer:
         for key, value in config.items():
             if key != "Prompt":
                 config_str += f"{key}: {value}\n"
-        if "Prompt" in config:
+        if "Prompt" in config: # Check if "Prompt" key exists
             config_str += f"Prompt: {config['Prompt']}\n"
 
         self.config_text.insert("1.0", config_str)
