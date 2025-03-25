@@ -11,7 +11,8 @@ import pickle  # Import the pickle module
 class ImageReviewer:
     def __init__(self, root):
         self.root = root
-        root.title("Image Review and Rating")
+        self.title = "Image Rater"
+        root.title(self.title)
 
         # Initialize data structures (empty initially)
         self.image_batches: Dict[str, List[str]] = {}
@@ -28,6 +29,11 @@ class ImageReviewer:
 
         self.create_widgets()
         self.setup_spreadsheet()
+
+        self.style_italic = ttk.Style().configure('Italic.TButton', font=('TkDefaultFont', 10, 'italic'))
+        self.style_normal = ttk.Style().configure('Normal.TButton', font=('TkDefaultFont', 10, 'normal'))
+        self.style_bold = ttk.Style().configure('Bold.TButton', font=('TkDefaultFont', 10, 'bold'))
+
 
 
     def create_widgets(self):
@@ -90,6 +96,7 @@ class ImageReviewer:
         nav_button_frame.pack(pady=5)
         self.prev_image_button = ttk.Button(nav_button_frame, text="Previous Image", command=self.prev_subfolder)
         self.prev_image_button.pack(side=tk.LEFT, padx=5)
+        
         self.next_image_button = ttk.Button(nav_button_frame, text="Next Image", command=self.next_subfolder)
         self.next_image_button.pack(side=tk.LEFT, padx=5)
         self.prev_batch_button = ttk.Button(nav_button_frame, text="Previous Batch", command=self.prev_batch)
@@ -125,6 +132,8 @@ class ImageReviewer:
 
         self.save_csv_button = ttk.Button(button_row_frame, text="Save to CSV", command=self.save_to_csv)
         self.save_csv_button.pack(side=tk.LEFT, padx=5)
+
+
 
     def create_rating_buttons(self, criterion):
         for widget in self.rating_button_frames[criterion].winfo_children():
@@ -254,8 +263,8 @@ class ImageReviewer:
             )
             self.spreadsheet.insert("", "end", values=values)
         
-        if self.sort_column:
-            self.sort_spreadsheet(self.sort_column)
+        #if self.sort_column:
+        #    self.sort_spreadsheet(self.sort_column)
 
 
 
@@ -337,7 +346,7 @@ class ImageReviewer:
              reference_image_path = os.path.join(current_subfolder_path, reference_image_files[0])
              self.load_and_display_image(reference_image_path, self.reference_image_label)
         else:
-            messagebox.showwarning("Warning", "No reference image found in subfolder.")
+            #messagebox.showwarning("Warning", "No reference image found in subfolder.")
             self.reference_image_label.config(image="")
 
         config = self.config_data.get(current_batch_path, {})
@@ -457,16 +466,13 @@ class ImageReviewer:
             }
             rating_entry[criterion] = rating_value
             self.ratings.append(rating_entry)
-
-        if self.selected_buttons[criterion]:
-            self.selected_buttons[criterion].config(relief=tk.RAISED)
-
+        
         for button in self.rating_button_frames[criterion].winfo_children():
             if button.cget('text') == rating_value:
-                button.config(relief=tk.SUNKEN)
                 self.selected_buttons[criterion] = button
                 break
 
+        self.update_rating_buttons()
         self.setup_spreadsheet()
 
 
@@ -475,15 +481,14 @@ class ImageReviewer:
             current_rating = self.get_rating(self.current_batch_index, self.current_subfolder_index, criterion)
             for button in self.rating_button_frames[criterion].winfo_children():
                 if current_rating is not None and button.cget('text') == self.reverse_rating_mapping.get(current_rating):
-                    button.config(relief=tk.SUNKEN)
                     self.selected_buttons[criterion] = button
+                    self.selected_buttons[criterion].config(style='Bold.TButton')
                 else:
-                    button.config(relief=tk.RAISED)
-                    if button == self.selected_buttons[criterion]:
-                        self.selected_buttons[criterion] = None
+                    button.config(style='Normal.TButton')
 
     def save_rating(self):
         self.setup_spreadsheet() # The spreadsheet is updated automatically now.
+        self.update_rating_buttons()  # Ensure buttons are in default state
 
     def show_summary(self):
         if not self.ratings:
@@ -575,7 +580,7 @@ class ImageReviewer:
         try:
             with open(filepath, 'w', newline='') as csvfile:
                 fieldnames = ["Batch Index", "Image Index", "Batch Path", "Image Path", "Temperature", "Top P", "Top K", "Max Tokens",
-                              "Whole Object", "Match Desc", "Match Style", "Reasoning"]
+                              "Whole Object", "Match Desc", "Match Style", "Reasoning", "Average Score"]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
 
@@ -586,6 +591,14 @@ class ImageReviewer:
                     batch_path = batch_paths[batch_idx]
                     image_path = self.image_batches[batch_path][image_idx]
                     config = self.config_data.get(batch_path, {})
+                    
+                    # Calculate average score
+                    whole_object_score = self.rating_mapping.get(rating_entry.get("Whole Object", "NA"), 0)
+                    match_desc_score = self.rating_mapping.get(rating_entry.get("Match Desc", "NA"), 0)
+                    match_style_score = self.rating_mapping.get(rating_entry.get("Match Style", "NA"), 0)
+                    reasoning_score = self.rating_mapping.get(rating_entry.get("Reasoning", "NA"), 0)
+                    average_score = (whole_object_score + match_desc_score + match_style_score + reasoning_score) / 4
+
                     row = {
                         'Batch Index': batch_idx,
                         'Image Index': image_idx,
@@ -599,6 +612,7 @@ class ImageReviewer:
                         "Match Desc": rating_entry.get("Match Desc", "NA"),
                         "Match Style": rating_entry.get("Match Style", "NA"),
                         "Reasoning": rating_entry.get("Reasoning", "NA"),
+                        "Average Score": f"{average_score:.2f}",
                     }
                     writer.writerow(row)
 
@@ -655,6 +669,8 @@ class ImageReviewer:
         if filepath:
             self.save_project_data(filepath)
             self.project_filepath = filepath  # Store the path
+            self.title = os.path.basename(filepath)
+            self.root.title(self.title)  # Update the window title
 
 
     def save_project_data(self, filepath: str):
@@ -695,7 +711,8 @@ class ImageReviewer:
           try:
               with open(filepath, 'rb') as f:  # 'rb' for binary read
                   project_data = pickle.load(f)  # Deserialize the data
-              
+              self.title = os.path.basename(filepath)
+              self.root.title(self.title)  # Update the window title
               # Restore data
               self.image_batches = project_data['image_batches']
               self.current_batch_index = project_data['current_batch_index']
