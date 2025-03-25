@@ -66,6 +66,8 @@ class ImageReviewer:
         self.spreadsheet.pack(fill=tk.BOTH, expand=True)
         self.setup_spreadsheet_columns()
         self.spreadsheet.bind("<Double-1>", self.on_spreadsheet_double_click)
+        self.spreadsheet.bind("<KeyRelease-Up>", self.on_spreadsheet_arrow_key)
+        self.spreadsheet.bind("<KeyRelease-Down>", self.on_spreadsheet_arrow_key)
 
         right_frame = ttk.Frame(main_frame)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
@@ -266,7 +268,34 @@ class ImageReviewer:
         #if self.sort_column:
         #    self.sort_spreadsheet(self.sort_column)
 
+    
 
+    def on_spreadsheet_arrow_key(self, event):
+        """Handles up and down arrow key events on the spreadsheet."""
+        selected_item = self.spreadsheet.focus()  # Get the currently focused item
+        if selected_item:
+            values = self.spreadsheet.item(selected_item, 'values')  # Get values of the item
+            try:
+                # Extract batch and image indices from the selected row
+                selected_batch_index = int(values[0])
+                selected_image_index = int(values[1])
+                # Check if the indices are valid for the current data
+                batch_paths = list(self.image_batches.keys())
+                if selected_batch_index < len(batch_paths):
+                    current_batch_path = batch_paths[selected_batch_index]
+                    if selected_image_index < len(self.image_batches[current_batch_path]):
+                        # Update current indices and display the image
+                        self.current_batch_index = selected_batch_index
+                        self.current_subfolder_index = selected_image_index
+                        self.display_current_images()
+                    else:
+                        messagebox.showerror("Error", "Invalid image index.")
+                else:
+                    messagebox.showerror("Error", "Invalid batch index.")
+            except ValueError:
+                messagebox.showerror("Error", "Invalid data in the selected row.")
+            except IndexError:
+                messagebox.showerror("Error", "Please select a valid row.")
 
     def load_batches(self):
         batch_folder_path = filedialog.askdirectory(title="Select Batch Folder")

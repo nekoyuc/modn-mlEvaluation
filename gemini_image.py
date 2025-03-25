@@ -43,9 +43,9 @@ def generate(iter, temp, topp, topk, prompt, attachment=False):
             n += 1
     
     # Set the user text based on the prompt
-    image_request = ". Generate an image based on the description above. For the image, Leave the object empty, show the full extent of the whole object, do not include any other objects. Keep the background, mono-colored, plain and simple."
+    image_request = ". Generate an image based on the description above. For the image, Leave the object empty, show the full extent of the whole object, do not include any other objects. Keep the background mono-colored, plain and simple."
     reasoning_request = "Describe your thinking process in text before generating the image, make sure to include both your thinking process and the image in your response."
-    attachment_request = "Reference and imitate the styles of the object in the uploaded attachment, such as geometry, texture, or conceptual features, make sure to stick to the description. If the attachment style is inconsistent with the description, just try your best, be flexible and generate the image."
+    attachment_request = "Reference and imitate the styles of the object in the uploaded attachment, make sure to stick to the description. If the attachment style is inconsistent with the description, just try your best, be flexible and generate the image."
     
     user_text = prompt + image_request + reasoning_request
     if attachment:
